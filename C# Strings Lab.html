@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>C# Strings Lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* VOICE everyday study tool for HNDIT Year 1 students, clear and calm
+   IDEA a string drawn as a strip of numbered character cells, like a ticket tape
+   PICTURE the live tape: every character with its index, lit up by the chosen method
+   COLOUR white ground, near-black ink, ultramarine for code and actions, yellow for highlighted cells
+   TYPE Inter for text, JetBrains Mono for code and characters
+   LAYOUT laptop: tape full width, controls left, result right; phone: title, tape, controls, result */
+:root{color-scheme:light;--bg:#fff;--ink:#14110f;--mute:#5d5d68;--line:#e2e2e8;--soft:#f4f5fb;--blue:#1d2bd8;--blue2:#e9ebfd;--hl:#ffe600;--red:#c62828;--redbg:#fdecec;--green:#0a7d45;--greenbg:#e6f6ee}
+*{box-sizing:border-box;min-width:0}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font:16px/1.55 Inter,system-ui,sans-serif;overflow-x:clip}
+code,.mono,pre,input.mono{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+.wrap{max-width:1240px;margin:0 auto;padding:0 max(4vw,16px)}
+header{border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px 24px;padding-top:14px;padding-bottom:4px}
+h1{font-size:clamp(26px,3.4vw,36px);line-height:1.05;letter-spacing:-.02em;margin:0;font-weight:700}
+.sub{color:var(--mute);font-size:14px}
+nav{display:flex;flex-wrap:wrap;gap:4px;padding-bottom:8px;padding-top:6px}
+nav a{padding:9px 14px;border-radius:8px;color:var(--ink);text-decoration:none;font-weight:500;font-size:15px;min-height:40px;display:inline-flex;align-items:center}
+nav a:hover{background:var(--soft)}
+nav a.on{background:var(--blue);color:#fff}
+nav a:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--hl);outline-offset:2px}
+main{padding-top:24px;padding-bottom:56px}
+section[data-view]{display:none}
+section[data-view].on{display:block}
+h2{font-size:24px;letter-spacing:-.01em;margin:0 0 6px}
+h3{font-size:17px;margin:0 0 6px}
+p{margin:0 0 12px}
+.lead{color:var(--mute);max-width:70ch}
+.tapebox{background:var(--soft);border-radius:14px;padding:18px;margin:14px 0 20px}
+.tapehead{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 16px;font-size:14px;color:var(--mute);margin-bottom:10px}
+.tape{display:flex;flex-wrap:wrap;gap:4px}
+.cell{width:42px;text-align:center}
+.cell b{display:flex;align-items:center;justify-content:center;height:50px;border:1.5px solid #c9cbe0;background:#fff;border-radius:7px;font:600 22px "JetBrains Mono",monospace;transition:background .2s,border-color .2s}
+.cell i{display:block;font:12px "JetBrains Mono",monospace;color:var(--mute);font-style:normal;margin-top:3px}
+.cell.sp b{color:#b4b6c8;font-size:16px}
+.cell.hl b{background:var(--hl);border-color:#d4bf00}
+.cell.cut b{background:var(--redbg);border-color:#e7a3a3;text-decoration:line-through;color:var(--red)}
+.cell.dim b{opacity:.35}
+.empty{color:var(--mute);font-style:italic;padding:14px 0}
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:22px;align-items:start}
+.panel{border:1px solid var(--line);border-radius:14px;padding:18px}
+label{display:block;font-size:14px;font-weight:600;margin:0 0 5px}
+input[type=text],input[type=number]{width:100%;font-size:16px;padding:10px 12px;border:1.5px solid #c9cbe0;border-radius:8px;background:#fff;color:var(--ink);min-height:44px}
+input:focus{border-color:var(--blue)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 14px}
+.chip{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 12px;font:500 14px "JetBrains Mono",monospace;cursor:pointer;color:var(--ink);min-height:38px}
+.chip:hover{border-color:var(--blue)}
+.chip.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.chips-label{font-size:13px;color:var(--mute);margin-top:4px}
+.args{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.hint{font-size:13px;color:var(--mute);margin-top:4px}
+.mdesc{background:var(--blue2);border-radius:10px;padding:10px 12px;font-size:15px;margin-bottom:14px}
+.result{font:600 clamp(24px,3.4vw,34px)/1.2 "JetBrains Mono",monospace;overflow-wrap:anywhere;margin:6px 0 10px}
+.result.err{color:var(--red);font-size:20px}
+.badge{display:inline-block;font:600 12px Inter,sans-serif;border-radius:6px;padding:3px 8px;background:var(--blue2);color:var(--blue)}
+.badge.err{background:var(--redbg);color:var(--red)}
+.arr{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 10px}
+.arr span{font:600 17px "JetBrains Mono",monospace;background:var(--soft);border:1px solid var(--line);border-radius:7px;padding:5px 9px;white-space:pre}
+.arr small{display:block;font:11px Inter;color:var(--mute)}
+pre{background:#0f1226;color:#e6e8ff;border-radius:10px;padding:14px;font-size:14px;line-height:1.6;margin:10px 0 0;overflow-x:auto}
+.kw{color:#8ab4ff}.st{color:#ffd479}.cm{color:#8d93b5}.nu{color:#b5f0c0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.btn{background:var(--blue);color:#fff;border:0;border-radius:8px;padding:10px 16px;font:600 15px Inter,sans-serif;cursor:pointer;min-height:44px}
+.btn:hover{filter:brightness(1.1)}
+.btn.ghost{background:#fff;color:var(--blue);border:1.5px solid var(--blue)}
+.note{font-size:14px;color:var(--mute);margin-top:10px}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-top:10px}
+.mcard{border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:6px}
+.mcard code{font-size:14px;background:var(--soft);padding:2px 6px;border-radius:5px;overflow-wrap:anywhere}
+.mcard .ex{font-size:14px}
+.mcard button{align-self:flex-start;margin-top:auto}
+.filters{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.form{border:1px solid #c9cbe0;border-radius:10px;overflow:hidden;background:#fff}
+.form .bar{background:#f0f0f0;border-bottom:1px solid #d6d6d6;padding:7px 12px;font-size:13px;display:flex;justify-content:space-between}
+.form .body{padding:14px;display:grid;gap:12px}
+.lb,.rtb{border:1px solid #9a9a9a;min-height:120px;max-height:220px;overflow:auto;font:14px "JetBrains Mono",monospace;padding:6px 8px;white-space:pre}
+.lb div{padding:1px 4px}
+.ctl{font-size:12px;color:var(--mute);margin-bottom:3px}
+.code{background:#0f1226;color:#e6e8ff;border-radius:10px;padding:10px 0;font:13.5px/1.7 "JetBrains Mono",monospace;overflow-x:auto}
+.code div{padding:0 14px;white-space:pre;border-left:3px solid transparent}
+.code div.cur{background:#26306b;border-left-color:var(--hl)}
+.code .ln{color:#6b7099;display:inline-block;width:2.2em}
+.log{margin-top:12px;font-size:14px}
+.log li{margin-bottom:4px}
+.modal{position:fixed;inset:0;background:rgba(15,18,38,.35);display:none;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modal.on{display:flex}
+.mbox{background:#fff;border-radius:10px;width:min(420px,100%);box-shadow:0 10px 40px rgba(0,0,0,.25);overflow:hidden}
+.mbox .bar{background:#f0f0f0;padding:8px 12px;font-size:13px}
+.mbox .msg{padding:18px 16px;font:15px "JetBrains Mono",monospace;overflow-wrap:anywhere;white-space:pre-wrap}
+.mbox .ft{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border-top:1px solid var(--line);font-size:13px;color:var(--mute)}
+.qwrap{max-width:760px}
+.prog{height:8px;background:var(--soft);border-radius:4px;overflow:hidden;margin:10px 0 18px}
+.prog i{display:block;height:100%;background:var(--blue);transition:width .3s}
+.qcode{font:600 16px "JetBrains Mono",monospace;background:var(--soft);border-radius:10px;padding:12px 14px;margin:10px 0;white-space:pre-wrap;overflow-wrap:anywhere}
+.opts{display:grid;gap:8px;margin:14px 0}
+.opt{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:12px 14px;font:16px "JetBrains Mono",monospace;cursor:pointer;color:var(--ink);min-height:48px}
+.opt:hover:not(:disabled){border-color:var(--blue)}
+.opt.ok{background:var(--greenbg);border-color:var(--green)}
+.opt.bad{background:var(--redbg);border-color:var(--red)}
+.opt:disabled{cursor:default}
+.fb{border-radius:10px;padding:12px 14px;margin-bottom:12px}
+.fb.ok{background:var(--greenbg)}.fb.bad{background:var(--redbg)}
+.score{font-size:clamp(40px,7vw,64px);font-weight:700;letter-spacing:-.03em;line-height:1}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--mute);font-weight:600}
+td code{font-size:13.5px;background:var(--soft);padding:1px 5px;border-radius:4px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:12px 0 26px}
+.rule{background:var(--soft);border-radius:12px;padding:14px}
+@media(max-width:760px){.grid2{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:600px){.cell{width:34px}.cell b{height:42px;font-size:18px}table{font-size:13px}.stack thead{display:none}.stack tr{display:grid;padding-block:8px;border-bottom:1px solid var(--line)}.stack td{display:flex;justify-content:space-between;gap:12px;border:0;padding:3px 0}.stack td::before{content:attr(data-l);color:var(--mute);font-size:12px;font-weight:600}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="top">
+      <h1>C# Strings Lab</h1>
+      <div class="sub">HNDIT1012 Visual Application Programming · Week 7</div>
+    </div>
+    <nav id="nav">
+      <a href="#playground" data-v="playground">Playground</a>
+      <a href="#methods" data-v="methods">Method explorer</a>
+      <a href="#lab" data-v="lab">Week 7 form</a>
+      <a href="#quiz" data-v="quiz">Quiz</a>
+      <a href="#cheatsheet" data-v="cheatsheet">Cheat sheet</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<section data-view="playground">
+  <div class="tapebox">
+    <div class="tapehead"><span id="tapeTitle">string s</span><span id="tapeLen"></span></div>
+    <div class="tape" id="tape"></div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <label for="sIn">Your string <span class="mono" style="font-weight:400;color:var(--mute)">s</span></label>
+      <input type="text" id="sIn" class="mono" value="Hello World" autocomplete="off" spellcheck="false">
+      <div class="row" style="margin-top:8px">
+        <button class="chip" data-preset="Hello World">Hello World</button>
+        <button class="chip" data-preset="apple pie">apple pie</button>
+        <button class="chip" data-preset="  Visual Studio  ">␣␣Visual Studio␣␣</button>
+        <button class="chip" data-preset="red,green,blue">red,green,blue</button>
+      </div>
+      <div class="chips-label" style="margin-top:16px">Pick a property or method</div>
+      <div class="chips" id="mchips"></div>
+      <div class="mdesc" id="mdesc"></div>
+      <div class="args" id="args"></div>
+    </div>
+    <div class="panel" aria-live="polite">
+      <div class="row" style="justify-content:space-between"><span class="sub">Result</span><span id="rtype" class="badge"></span></div>
+      <div id="rout"></div>
+      <div class="row" style="justify-content:space-between;margin-top:6px"><span class="sub">The same thing in C#</span><button class="btn ghost" id="copyBtn" style="min-height:36px;padding:6px 12px;font-size:14px">Copy code</button></div>
+      <pre id="rcode"></pre>
+      <p class="note" id="rnote"></p>
+    </div>
+  </div>
+</section>
+
+<section data-view="methods">
+  <h2>All 18 methods from the lecture, plus Length, [ ] and Concat</h2>
+  <p class="lead">Filter by what each one returns. Knowing the return type tells you where you can use it: a bool goes in an <code>if</code>, an int is a position or count, and a string method always gives you a new string.</p>
+  <div class="filters" id="filters"></div>
+  <div class="mgrid" id="mgrid"></div>
+</section>
+
+<section data-view="lab">
+  <h2>Run the week7 form from the lecture</h2>
+  <p class="lead">Type into the TextBox and press button1. The code on the right steps through line by line, and each MessageBox waits for you to press OK, just like the real Windows Forms app.</p>
+  <div class="grid2" style="margin-top:14px">
+    <div>
+      <div class="form">
+        <div class="bar"><span>week7</span><span>— ▢ ✕</span></div>
+        <div class="body">
+          <div><div class="ctl">textBox1</div><input type="text" id="tb1" value="apple pie" autocomplete="off"></div>
+          <div class="row"><button class="btn" id="b1">button1</button><button class="btn ghost" id="clr">Clear controls</button></div>
+          <div><div class="ctl">listBox1</div><div class="lb" id="lb1"></div></div>
+          <div><div class="ctl">richTextBox1</div><div class="rtb" id="rtb1"></div></div>
+        </div>
+      </div>
+      <ol class="log" id="log"></ol>
+    </div>
+    <div><div class="code" id="labCode"></div><p class="note">Try an empty TextBox to see why <code>myString[0]</code> needs a guard, or press button1 twice to see <code>AddRange</code> and <code>+=</code> keep adding.</p></div>
+  </div>
+</section>
+
+<section data-view="quiz">
+  <div class="qwrap" id="quizBox"></div>
+</section>
+
+<section data-view="cheatsheet">
+  <h2>Five rules that answer most exam questions</h2>
+  <div class="rules">
+    <div class="rule"><h3>Indexes start at 0</h3>First character <code>s[0]</code>, last <code>s[s.Length - 1]</code>. The slide's <code>myString[1]</code> prints the second character.</div>
+    <div class="rule"><h3>Strings never change</h3>Every method returns a new string. Write <code>s = s.ToUpper();</code> to keep the result.</div>
+    <div class="rule"><h3>Length is a property</h3>No brackets: <code>s.Length</code>. Spaces count as characters.</div>
+    <div class="rule"><h3>-1 means not found</h3><code>IndexOf</code> and <code>LastIndexOf</code> return -1, never 0, when there is no match.</div>
+    <div class="rule"><h3>Second number is a length</h3><code>Substring(start, length)</code> and <code>Remove(start, count)</code>, not start and end.</div>
+  </div>
+  <h2>Common mistakes</h2>
+  <div class="tbl"><table class="stack">
+    <thead><tr><th>Mistake</th><th>Wrong</th><th>Right</th></tr></thead>
+    <tbody id="mistakes"></tbody>
+  </table></div>
+</section>
+
+</main>
+
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="mTitle">
+  <div class="mbox"><div class="bar" id="mTitle">MessageBox</div><div class="msg" id="mMsg"></div><div class="ft"><span id="mStep"></span><button class="btn" id="mOk">OK</button></div></div>
+</div>
+
+<script>
+{
+const $=id=>document.getElementById(id);
+const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const lit=t=>'"'+String(t).replace(/\\/g,'\\\\').replace(/"/g,'\\"')+'"';
+const chlit=c=>"'"+(c==="'"?"\\'":c==='\\'?'\\\\':c)+"'";
+class CsEx extends Error{constructor(t,m){super(m);this.t=t}}
+const AOOR=m=>new CsEx('ArgumentOutOfRangeException',m);
+const ret={str:'string',int:'int',bool:'bool',char:'char',sarr:'string[]',carr:'char[]'};
+
+/* ---------- method catalogue ---------- */
+const M=[
+ {id:'Length',sig:'s.Length',r:'int',d:'Property that returns the number of characters, spaces included. No brackets.',ex:'"Hello".Length → 5',args:[],
+  run:s=>({v:s.length}),code:()=>'s.Length'},
+ {id:'[ ]',sig:'s[index]',r:'char',d:'Reads one character by its index. The first index is 0, the last is Length - 1.',ex:'"Hello"[1] → \'e\'',args:[{k:'i',l:'index',t:'int',v:'0'}],
+  run:(s,a)=>{if(a.i<0||a.i>=s.length)throw new CsEx('IndexOutOfRangeException','Index was outside the bounds of the array.');return{v:s[a.i],hl:[a.i,a.i+1]}},code:a=>`s[${a.i}]`},
+ {id:'ToUpper',sig:'s.ToUpper()',r:'str',d:'Returns a copy converted to upper case.',ex:'"Hello".ToUpper() → "HELLO"',args:[],run:s=>({v:s.toUpperCase()}),code:()=>'s.ToUpper()'},
+ {id:'ToLower',sig:'s.ToLower()',r:'str',d:'Returns a copy converted to lower case.',ex:'"Hello".ToLower() → "hello"',args:[],run:s=>({v:s.toLowerCase()}),code:()=>'s.ToLower()'},
+ {id:'Concat',sig:'string.Concat(a, b)',r:'str',d:'Joins strings end to end with nothing in between. Static: call it on string.',ex:'string.Concat("John ", "Doe") → "John Doe"',args:[{k:'o',l:'second string',t:'str',v:'!!!'}],
+  run:(s,a)=>({v:s+a.o}),code:a=>`string.Concat(s, ${lit(a.o)})`},
+ {id:'Format',sig:'string.Format(template, args)',r:'str',d:'Fills {0}, {1} placeholders in a template. Here {0} is s.',ex:'string.Format("Hi {0}", "Ali") → "Hi Ali"',args:[{k:'f',l:'template ({0} = s)',t:'str',v:'Text: {0}, length {1}'}],
+  run:(s,a)=>{const v=a.f.replace(/\{(\d+)\}/g,(m,n)=>{if(n==='0')return s;if(n==='1')return String(s.length);throw new CsEx('FormatException','Index (zero based) must be greater than or equal to zero and less than the size of the argument list.')});return{v}},code:a=>`string.Format(${lit(a.f)}, s, s.Length)`,note:'In this playground {0} is s and {1} is s.Length.'},
+ {id:'Split',sig:'s.Split(separator)',r:'sarr',d:'Breaks the string at every separator and returns an array of the pieces.',ex:'"a,b,c".Split(\',\') → {"a","b","c"}',args:[{k:'c',l:'separator (char)',t:'char',v:' '}],
+  run:(s,a)=>({v:s.split(a.c),hlAll:a.c}),code:a=>`s.Split(${chlit(a.c)})`},
+ {id:'Substring',sig:'s.Substring(start, length)',r:'str',d:'Returns part of the string from start. The second number is how many characters, not an end index.',ex:'"Hello World".Substring(6) → "World"',args:[{k:'st',l:'start',t:'int',v:'6'},{k:'ln',l:'length (optional)',t:'int?',v:''}],
+  run:(s,a)=>{if(a.st<0||a.st>s.length)throw AOOR('startIndex cannot be larger than length of string.');if(a.ln===null)return{v:s.slice(a.st),hl:[a.st,s.length]};if(a.ln<0||a.st+a.ln>s.length)throw AOOR('Index and length must refer to a location within the string.');return{v:s.substr(a.st,a.ln),hl:[a.st,a.st+a.ln]}},
+  code:a=>a.ln===null?`s.Substring(${a.st})`:`s.Substring(${a.st}, ${a.ln})`},
+ {id:'Compare',sig:'string.Compare(a, b)',r:'int',d:'Compares alphabetically: negative if a comes first, 0 if equal, positive if a comes after.',ex:'string.Compare("apple","banana") → -1',args:[{k:'o',l:'compare s with',t:'str',v:'Hello'}],
+  run:(s,a)=>({v:Math.sign(new Intl.Collator('en').compare(s,a.o))}),code:a=>`string.Compare(s, ${lit(a.o)})`},
+ {id:'Replace',sig:'s.Replace(old, new)',r:'str',d:'Replaces every occurrence, not just the first.',ex:'"banana".Replace("a","o") → "bonono"',args:[{k:'a',l:'old value',t:'str',v:'o'},{k:'b',l:'new value',t:'str',v:'0'}],
+  run:(s,a)=>{if(a.a==='')throw new CsEx('ArgumentException','String cannot be of zero length. (Parameter \'oldValue\')');return{v:s.split(a.a).join(a.b),hlAll:a.a}},code:a=>`s.Replace(${lit(a.a)}, ${lit(a.b)})`},
+ {id:'Contains',sig:'s.Contains(value)',r:'bool',d:'True if the text appears anywhere. Case-sensitive.',ex:'"Hello".Contains("ell") → True',args:[{k:'a',l:'value',t:'str',v:'World'}],
+  run:(s,a)=>{const i=s.indexOf(a.a);return{v:i>=0,hl:i>=0?[i,i+a.a.length]:null}},code:a=>`s.Contains(${lit(a.a)})`},
+ {id:'Join',sig:'string.Join(separator, values)',r:'str',d:'Joins an array of strings with a separator between each. Here it joins the words of s.',ex:'string.Join("-", "a","b","c") → "a-b-c"',args:[{k:'a',l:'separator',t:'str',v:' | '}],
+  run:(s,a)=>({v:s.split(' ').join(a.a)}),code:a=>`string.Join(${lit(a.a)}, s.Split(' '))`},
+ {id:'Trim',sig:'s.Trim()',r:'str',d:'Removes spaces (and tabs, new lines) from both ends. Spaces in the middle stay.',ex:'"  Hi  ".Trim() → "Hi"',args:[],
+  run:s=>{const t=s.trim(),st=s.length-s.trimStart().length;return{v:t,keep:[st,st+t.length]}},code:()=>'s.Trim()'},
+ {id:'EndsWith',sig:'s.EndsWith(value)',r:'bool',d:'True if the string ends with the given text.',ex:'"report.pdf".EndsWith(".pdf") → True',args:[{k:'a',l:'value',t:'str',v:'ld'}],
+  run:(s,a)=>{const ok=s.endsWith(a.a);return{v:ok,hl:ok?[s.length-a.a.length,s.length]:null}},code:a=>`s.EndsWith(${lit(a.a)})`},
+ {id:'IndexOf',sig:'s.IndexOf(value, start)',r:'int',d:'Position of the first match, or -1 if not found. Optional start says where to begin searching.',ex:'"Hello".IndexOf(\'l\') → 2',args:[{k:'a',l:'value',t:'str',v:'o'},{k:'st',l:'start (optional)',t:'int?',v:''}],
+  run:(s,a)=>{const st=a.st===null?0:a.st;if(st<0||st>s.length)throw AOOR('Index was out of range. Must be non-negative and less than or equal to the size of the collection.');const i=s.indexOf(a.a,st);return{v:i,hl:i>=0?[i,i+a.a.length]:null,from:st}},
+  code:a=>a.st===null?`s.IndexOf(${lit(a.a)})`:`s.IndexOf(${lit(a.a)}, ${a.st})`},
+ {id:'Remove',sig:'s.Remove(start, count)',r:'str',d:'Deletes characters from start to the end, or count characters if given.',ex:'"Hello World".Remove(5) → "Hello"',args:[{k:'st',l:'start',t:'int',v:'5'},{k:'n',l:'count (optional)',t:'int?',v:''}],
+  run:(s,a)=>{if(a.st<0||a.st>s.length)throw AOOR('startIndex must be less than length of string.');const n=a.n===null?s.length-a.st:a.n;if(n<0||a.st+n>s.length)throw AOOR('Index and count must refer to a location within the string.');return{v:s.slice(0,a.st)+s.slice(a.st+n),cut:[a.st,a.st+n]}},
+  code:a=>a.n===null?`s.Remove(${a.st})`:`s.Remove(${a.st}, ${a.n})`},
+ {id:'PadLeft',sig:'s.PadLeft(totalWidth, char)',r:'str',d:'Adds characters on the left until the string is totalWidth long. Spaces if no char given.',ex:'"42".PadLeft(5,\'0\') → "00042"',args:[{k:'w',l:'total width',t:'int',v:'16'},{k:'c',l:'pad char',t:'char',v:'*'}],
+  run:(s,a)=>{if(a.w<0)throw AOOR("Non-negative number required. (Parameter 'totalWidth')");return{v:s.padStart(a.w,a.c)}},code:a=>`s.PadLeft(${a.w}, ${chlit(a.c)})`},
+ {id:'PadRight',sig:'s.PadRight(totalWidth, char)',r:'str',d:'Adds characters on the right until the string is totalWidth long.',ex:'"Hi".PadRight(5,\'*\') → "Hi***"',args:[{k:'w',l:'total width',t:'int',v:'20'},{k:'c',l:'pad char',t:'char',v:'#'}],
+  run:(s,a)=>{if(a.w<0)throw AOOR("Non-negative number required. (Parameter 'totalWidth')");return{v:s.padEnd(a.w,a.c)}},code:a=>`s.PadRight(${a.w}, ${chlit(a.c)})`},
+ {id:'StartsWith',sig:'s.StartsWith(value)',r:'bool',d:'True if the string begins with the given text.',ex:'"Hello".StartsWith("He") → True',args:[{k:'a',l:'value',t:'str',v:'He'}],
+  run:(s,a)=>{const ok=s.startsWith(a.a);return{v:ok,hl:ok?[0,a.a.length]:null}},code:a=>`s.StartsWith(${lit(a.a)})`},
+ {id:'ToCharArray',sig:'s.ToCharArray()',r:'carr',d:'Copies the characters into a char array, for example to reverse or count them.',ex:'"abc".ToCharArray() → {\'a\',\'b\',\'c\'}',args:[],run:s=>({v:[...s]}),code:()=>'s.ToCharArray()'},
+ {id:'LastIndexOf',sig:'s.LastIndexOf(value)',r:'int',d:'Position of the last match, or -1 if not found.',ex:'"Hello".LastIndexOf(\'l\') → 3',args:[{k:'a',l:'value',t:'str',v:'o'}],
+  run:(s,a)=>{const i=s.lastIndexOf(a.a);return{v:i,hl:i>=0?[i,i+a.a.length]:null}},code:a=>`s.LastIndexOf(${lit(a.a)})`}
+];
+
+/* ---------- playground ---------- */
+let cur='IndexOf';const argVals={};
+const sIn=$('sIn');
+function fmtVal(v,r){
+  if(r==='str')return `<div class="result">${esc(lit(v))}</div>`;
+  if(r==='char')return `<div class="result">${esc(chlit(v))}</div>`;
+  if(r==='bool')return `<div class="result" style="color:${v?'var(--green)':'var(--red)'}">${v?'True':'False'}</div>`;
+  if(r==='int')return `<div class="result">${v}</div>`;
+  const q=r==='sarr'?lit:chlit;
+  return `<div class="result" style="font-size:20px">${v.length} item${v.length===1?'':'s'}</div><div class="arr">${v.map((x,i)=>`<span>${esc(q(x))}<small>[${i}]</small></span>`).join('')}</div>`;
+}
+function hlCode(t){
+  return esc(t).replace(/(&quot;(?:[^&]|&(?!quot;))*?&quot;|'[^']*')|(\/\/.*)|\b(string|var|int|char|bool)\b|\b(\d+)\b/g,(m,st,cm,kw,nu)=>st?`<span class="st">${st}</span>`:cm?`<span class="cm">${cm}</span>`:kw?`<span class="kw">${kw}</span>`:`<span class="nu">${nu}</span>`);
+}
+function renderChips(){
+  $('mchips').innerHTML=M.map(m=>`<button class="chip${m.id===cur?' on':''}" data-m="${esc(m.id)}">${esc(m.id)}</button>`).join('');
+}
+function renderArgs(){
+  const m=M.find(x=>x.id===cur);
+  $('mdesc').innerHTML=`<b class="mono">${esc(m.sig)}</b> returns <b>${ret[m.r]}</b>. ${esc(m.d)}`;
+  $('args').innerHTML=m.args.length?m.args.map(a=>{const key=cur+'.'+a.k;if(!(key in argVals))argVals[key]=a.v;
+    return `<div><label for="a_${a.k}">${esc(a.l)}</label><input id="a_${a.k}" data-k="${a.k}" class="mono" type="${a.t.startsWith('int')?'number':'text'}" value="${esc(argVals[key])}" ${a.t==='char'?'maxlength="1"':''} autocomplete="off" spellcheck="false">${a.t==='char'?'<div class="hint">One character. A space counts.</div>':''}</div>`}).join(''):'<p class="hint" style="margin:0">No arguments needed.</p>';
+}
+function tape(s,res){
+  const box=$('tape');
+  $('tapeLen').textContent=`Length = ${s.length}  ·  last index = ${s.length-1}`;
+  if(!s.length){box.innerHTML='<div class="empty">Empty string "" has Length 0 and no indexes.</div>';return}
+  const cls=new Array(s.length).fill('');
+  if(res){
+    if(res.hl)for(let i=res.hl[0];i<res.hl[1];i++)cls[i]='hl';
+    if(res.cut)for(let i=res.cut[0];i<res.cut[1];i++)cls[i]='cut';
+    if(res.keep)for(let i=0;i<s.length;i++)cls[i]=i>=res.keep[0]&&i<res.keep[1]?'':'cut';
+    if(res.hlAll){let i=s.indexOf(res.hlAll);while(i>=0&&res.hlAll){for(let j=i;j<i+res.hlAll.length;j++)cls[j]='hl';i=s.indexOf(res.hlAll,i+res.hlAll.length)}}
+    if(res.from)for(let i=0;i<res.from;i++)if(!cls[i])cls[i]='dim';
+  }
+  box.innerHTML=[...s].map((c,i)=>`<div class="cell ${cls[i]}${c===' '?' sp':''}"><b>${c===' '?'␣':esc(c)}</b><i>${i}</i></div>`).join('');
+}
+let lastCode='';
+function run(){
+  const s=sIn.value,m=M.find(x=>x.id===cur),a={};let bad='';
+  m.args.forEach(d=>{let v=argVals[cur+'.'+d.k]??d.v;
+    if(d.t==='int'||d.t==='int?'){if(v===''&&d.t==='int?')v=null;else if(!/^-?\d+$/.test(String(v).trim()))bad=`Enter a whole number for ${d.l}.`;else v=parseInt(v,10)}
+    if(d.t==='char'&&String(v).length!==1)bad=`${d.l} needs exactly one character.`;
+    a[d.k]=v});
+  $('tapeTitle').textContent='string s = '+lit(s)+';';
+  const head=`string s = ${lit(s)};\n`;
+  if(bad){tape(s,null);$('rtype').className='badge err';$('rtype').textContent='input';$('rout').innerHTML=`<div class="result err">${esc(bad)}</div>`;$('rcode').innerHTML='';$('rnote').textContent='';return}
+  const call=m.code(a),decl=(m.r==='sarr'||m.r==='carr')?ret[m.r]:ret[m.r];
+  try{
+    const res=m.run(s,a);tape(s,res);
+    $('rtype').className='badge';$('rtype').textContent=ret[m.r];
+    $('rout').innerHTML=fmtVal(res.v,m.r);
+    const shown=m.r==='str'?lit(res.v):m.r==='char'?chlit(res.v):m.r==='bool'?(res.v?'True':'False'):m.r==='int'?res.v:`${res.v.length} items`;
+    lastCode=head+`${decl} r = ${call};\n// r = ${shown}`;
+    let note=m.note||'';
+    if(m.r==='str'&&cur!=='Concat'&&cur!=='Format'&&cur!=='Join')note+=(note?' ':'')+`s is still ${lit(s)}: strings are immutable, so the method returned a new string.`;
+    if(res.from)note+=` Cells before index ${res.from} were skipped.`;
+    $('rnote').textContent=note;
+  }catch(e){
+    tape(s,null);$('rtype').className='badge err';$('rtype').textContent='exception';
+    $('rout').innerHTML=`<div class="result err">${esc(e.t||'Error')}</div><p>${esc(e.message)}</p>`;
+    lastCode=head+`${decl} r = ${call};\n// throws ${e.t||'Error'} at run time`;
+    $('rnote').textContent='The program would stop here unless the call is inside try/catch. Check the index against s.Length.';
+  }
+  $('rcode').innerHTML=hlCode(lastCode);
+}
+function select(id){cur=id;renderChips();renderArgs();run()}
+$('mchips').addEventListener('click',e=>{const b=e.target.closest('[data-m]');if(b)select(b.dataset.m)});
+$('args').addEventListener('input',e=>{const k=e.target.dataset.k;if(k){argVals[cur+'.'+k]=e.target.value;run()}});
+sIn.addEventListener('input',run);
+document.querySelectorAll('[data-preset]').forEach(b=>b.addEventListener('click',()=>{sIn.value=b.dataset.preset;run()}));
+$('copyBtn').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(lastCode);$('copyBtn').textContent='Copied'}catch(e){$('copyBtn').textContent='Copy blocked'}setTimeout(()=>$('copyBtn').textContent='Copy code',1500)});
+
+/* ---------- method explorer ---------- */
+const groups=[['all','All'],['str','Returns string'],['bool','Returns bool'],['int','Returns int'],['arr','Returns array'],['char','Returns char']];
+let flt='all';
+function renderMethods(){
+  $('filters').innerHTML=groups.map(([k,l])=>`<button class="chip${k===flt?' on':''}" data-f="${k}" style="font-family:Inter">${l}</button>`).join('');
+  const list=M.filter(m=>flt==='all'||m.r===flt||(flt==='arr'&&(m.r==='sarr'||m.r==='carr')));
+  $('mgrid').innerHTML=list.map(m=>`<div class="mcard"><h3 class="mono">${esc(m.id)}</h3><code>${esc(m.sig)}</code><div><span class="badge">${ret[m.r]}</span></div><div>${esc(m.d)}</div><div class="ex mono">${esc(m.ex)}</div><button class="btn ghost" data-try="${esc(m.id)}">Try in playground</button></div>`).join('');
+}
+$('filters').addEventListener('click',e=>{const b=e.target.closest('[data-f]');if(b){flt=b.dataset.f;renderMethods()}});
+$('mgrid').addEventListener('click',e=>{const b=e.target.closest('[data-try]');if(b){select(b.dataset.try);location.hash='playground'}});
+
+/* ---------- week7 form simulator ---------- */
+const L=[
+ 'private void button1_Click(object sender, EventArgs e)','{',
+ '    string myString = textBox1.Text;','    string s = myString;','    var x = myString.Split(\' \');','    listBox1.Items.AddRange(x);','',
+ '    myString = String.Format("First letter of your text is {0} and the last letter is {1}", myString[0], myString[myString.Length - 1]);',
+ '    MessageBox.Show(myString);','',
+ '    for (int i = 0; i <= s.Length; i++)','    {','        richTextBox1.Text += s.Substring(0, i) + "\\n";','    }','',
+ '    MessageBox.Show(s.Replace("p", "b"));   // replace all "p" by "b"','    MessageBox.Show(s.PadRight(20, \'#\'));',
+ '    s = "Computer is an electronic information processing machine";',
+ '    MessageBox.Show(s.IndexOf("is").ToString());     // search from the beginning',
+ '    MessageBox.Show(s.IndexOf("is", 15).ToString()); // search from index 15','}'];
+$('labCode').innerHTML=L.map((t,i)=>`<div id="ln${i}"><span class="ln">${i+20}</span>${hlCode(t)}</div>`).join('');
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+let busy=false,okResolve=null;
+function mark(i){document.querySelectorAll('#labCode .cur').forEach(d=>d.classList.remove('cur'));if(i!=null){const d=$('ln'+i);d.classList.add('cur');d.scrollIntoView({block:'nearest',inline:'nearest'})}}
+function log(t){$('log').insertAdjacentHTML('beforeend',`<li>${t}</li>`)}
+function msg(text,title,step){$('mMsg').textContent=text;$('mTitle').textContent=title||'MessageBox';$('mStep').textContent=step||'';$('modal').classList.add('on');$('mOk').focus();return new Promise(r=>okResolve=r)}
+$('mOk').addEventListener('click',()=>{$('modal').classList.remove('on');if(okResolve){const r=okResolve;okResolve=null;r()}});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('modal').classList.contains('on'))$('mOk').click()});
+$('clr').addEventListener('click',()=>{if(busy)return;$('lb1').innerHTML='';$('rtb1').textContent='';$('log').innerHTML='';mark(null)});
+$('b1').addEventListener('click',async()=>{
+  if(busy)return;busy=true;$('log').innerHTML='';
+  try{
+    let myString=$('tb1').value;mark(2);await sleep(350);
+    let s=myString;mark(3);await sleep(300);
+    const x=myString.split(' ');mark(4);log(`<code>Split(' ')</code> gave ${x.length} item${x.length>1?'s':''}: ${x.map(w=>`<code>${esc(lit(w))}</code>`).join(', ')}`);await sleep(350);
+    mark(5);$('lb1').insertAdjacentHTML('beforeend',x.map(w=>`<div>${esc(w)||'&nbsp;'}</div>`).join(''));await sleep(400);
+    mark(7);await sleep(300);
+    if(!myString.length){log('<b style="color:var(--red)">myString[0] on an empty string throws IndexOutOfRangeException.</b> Add <code>if (myString.Length == 0) return;</code> at the top.');
+      await msg('System.IndexOutOfRangeException: Index was outside the bounds of the array.\n   at week7.button1_Click (line 27)','Unhandled exception','The handler stops here');return}
+    myString=`First letter of your text is ${myString[0]} and the last letter is ${myString[myString.length-1]}`;
+    log(`<code>myString[0]</code> = <code>${esc(chlit(s[0]))}</code>, <code>myString[${s.length-1}]</code> = <code>${esc(chlit(s[s.length-1]))}</code>`);
+    mark(8);await msg(myString,'MessageBox','MessageBox 1: Format');
+    mark(10);
+    for(let i=0;i<=s.length;i++){$('rtb1').textContent+=s.substring(0,i)+'\n';$('rtb1').scrollTop=1e6;mark(12);await sleep(130)}
+    log(`The loop ran ${s.length+1} times (i = 0 to ${s.length}); the first line is empty because <code>Substring(0, 0)</code> is <code>""</code>.`);
+    mark(15);const rep=s.split('p').join('b');log(`<code>Replace("p", "b")</code> changed ${s.split('p').length-1} letter${s.split('p').length-1===1?'':'s'}.`);await msg(rep,'MessageBox','MessageBox 2: Replace');
+    mark(16);const pad=s.padEnd(20,'#');log(`<code>PadRight(20, '#')</code> added ${Math.max(0,20-s.length)} <code>#</code>.`);await msg(pad,'MessageBox','MessageBox 3: PadRight');
+    mark(17);s='Computer is an electronic information processing machine';await sleep(300);
+    mark(18);await msg(String(s.indexOf('is')),'MessageBox','MessageBox 4: IndexOf("is")');
+    mark(19);log('From index 15 onward the sentence has no other "is", so the answer is -1.');await msg(String(s.indexOf('is',15)),'MessageBox','MessageBox 5: IndexOf("is", 15)');
+    mark(20);log('Handler finished.');
+  }finally{busy=false}
+});
+
+/* ---------- quiz ---------- */
+const Q=[
+ {q:'string s = "Hello";\nint n = s.Length;',a:'What is n?',o:['4','5','6','"Hello"'],c:1,e:'Length counts every character: H, e, l, l, o = 5.'},
+ {q:'string myString = "Hello";\nConsole.WriteLine(myString[1]);',a:'What is printed?',o:['H','e','l','An error'],c:1,e:'Indexes start at 0, so [1] is the second character, e. The first character is myString[0].'},
+ {q:'"Hello World".Substring(6, 3)',a:'What does this return?',o:['"Wor"','"Wo"','" Wo"','"World"'],c:0,e:'Start at index 6 (W) and take 3 characters: W, o, r.'},
+ {q:'"Hello World".IndexOf("World")',a:'What does this return?',o:['5','6','7','-1'],c:1,e:'H0 e1 l2 l3 o4 (space)5 W6. The match starts at index 6.'},
+ {q:'"banana".Replace("a", "o")',a:'What does this return?',o:['"bonana"','"banano"','"bonono"','"bnn"'],c:2,e:'Replace changes every occurrence, not only the first.'},
+ {q:'"C#".PadRight(5, \'*\')',a:'What does this return?',o:['"C#*****"','"C#***"','"***C#"','"C#**"'],c:1,e:'5 is the total width. "C#" has 2 characters, so 3 stars are added on the right.'},
+ {q:'Which method returns a bool?',a:'Choose one.',o:['IndexOf()','Contains()','Substring()','Split()'],c:1,e:'Contains, StartsWith and EndsWith return true or false. IndexOf returns an int, Substring a string, Split an array.'},
+ {q:'string[] parts = "a,b,,c".Split(\',\');',a:'What is parts.Length?',o:['3','4','5','6'],c:1,e:'The two commas side by side produce an empty string between them: "a", "b", "", "c".'},
+ {q:'string t = "Hi";\nt.ToUpper();\nConsole.WriteLine(t);',a:'What is printed?',o:['HI','Hi','hi','An error'],c:1,e:'Strings are immutable. ToUpper returns a new string that was never stored. Write t = t.ToUpper(); to keep it.'},
+ {q:'"Programming".LastIndexOf(\'m\')',a:'What does this return?',o:['6','7','8','-1'],c:1,e:'P0 r1 o2 g3 r4 a5 m6 m7. The last m is at index 7.'},
+ {q:'string s = "Computer is an electronic information processing machine";\ns.IndexOf("is", 15)',a:'What does this return? (from the lecture demo)',o:['9','15','-1','0'],c:2,e:'The only "is" starts at index 9. Searching from 15 finds nothing, so the answer is -1.'},
+ {q:'string.Concat("Visual ", "Studio")',a:'What does this return?',o:['"VisualStudio"','"Visual Studio"','"Visual  Studio"','"Visual, Studio"'],c:1,e:'Concat adds nothing between the pieces; the space is already inside "Visual ".'},
+ {q:'"  C#  ".Trim().Length',a:'What is the value?',o:['2','4','6','0'],c:0,e:'Trim removes the 2 spaces on each side, leaving "C#", which has 2 characters.'},
+ {q:'Which expression gives the last character of s?',a:'Choose one.',o:['s[s.Length]','s[s.Length - 1]','s.Last','s[-1]'],c:1,e:'The last index is always Length - 1. s[s.Length] throws IndexOutOfRangeException; C# has no negative indexes here.'},
+ {q:'string.Compare("cat", "cat")',a:'What does this return?',o:['True','1','0','-1'],c:2,e:'Compare returns an int: 0 when equal, negative when the first comes before, positive when after.'},
+ {q:'"Visual Studio".Remove(6)',a:'What does this return?',o:['"Visual"','"Studio"','"Visual "','"Visua"'],c:0,e:'Remove(6) deletes from index 6 (the space) to the end, leaving "Visual".'}
+];
+let qi=0,score=0,answered=false;
+function renderQuiz(){
+  const box=$('quizBox');
+  if(qi>=Q.length){
+    const pct=Math.round(score/Q.length*100);
+    box.innerHTML=`<h2>Quiz complete</h2><div class="score">${score} / ${Q.length}</div><p class="lead" style="margin-top:10px">${pct>=80?'Strong result. You are ready for string questions in the exam.':pct>=50?'Good start. Review the cheat sheet and try the playground for the ones you missed.':'Spend some time in the playground, especially on indexes, Substring and IndexOf, then try again.'}</p><button class="btn" id="qRestart">Try again</button>`;
+    $('qRestart').onclick=()=>{qi=0;score=0;renderQuiz()};return}
+  const x=Q[qi];answered=false;
+  box.innerHTML=`<div class="row" style="justify-content:space-between"><h2 style="margin:0">Question ${qi+1} of ${Q.length}</h2><span class="sub">Score ${score}</span></div>
+  <div class="prog"><i style="width:${qi/Q.length*100}%"></i></div>
+  <div class="qcode">${hlCode(x.q).replace(/class="(\w+)"/g,'class="$1" style="color:inherit;font-weight:700"')}</div><p>${esc(x.a)}</p>
+  <div class="opts">${x.o.map((o,i)=>`<button class="opt" data-i="${i}">${esc(o)}</button>`).join('')}</div><div id="qfb"></div>`;
+}
+$('quizBox').addEventListener('click',e=>{
+  const b=e.target.closest('.opt');
+  if(b&&!answered){answered=true;const x=Q[qi],i=+b.dataset.i,ok=i===x.c;if(ok)score++;
+    document.querySelectorAll('.opt').forEach((o,j)=>{o.disabled=true;if(j===x.c)o.classList.add('ok');else if(j===i)o.classList.add('bad')});
+    $('qfb').innerHTML=`<div class="fb ${ok?'ok':'bad'}"><b>${ok?'Correct.':'Not quite.'}</b> ${esc(x.e)}</div><button class="btn" id="qNext">${qi===Q.length-1?'See score':'Next question'}</button>`;
+    $('qNext').focus();return}
+  if(e.target.id==='qNext'){qi++;renderQuiz()}
+});
+
+/* ---------- cheat sheet ---------- */
+const MS=[
+ ['Not storing the result','name.ToUpper();','name = name.ToUpper();'],
+ ['Calling Length like a method','s.Length()','s.Length'],
+ ['Counting indexes from 1','first char = s[1]','first char = s[0]'],
+ ['Second Substring number as an end','s.Substring(2, 5) means index 2 to 5','means 5 characters from index 2'],
+ ['Treating "not found" as 0','if (s.IndexOf("x") > 0)','if (s.IndexOf("x") >= 0)'],
+ ['String where a char is needed','s.PadRight(20, "#")','s.PadRight(20, \'#\')'],
+ ['Forgetting case sensitivity','"Hello".Contains("hello") is True','it is False; compare with ToLower()'],
+ ['Showing an int in a MessageBox','MessageBox.Show(s.Length);','MessageBox.Show(s.Length.ToString());'],
+ ['Index past the end','s[s.Length]','s[s.Length - 1]']
+];
+$('mistakes').innerHTML=MS.map(r=>`<tr><td data-l="Mistake">${esc(r[0])}</td><td data-l="Wrong"><code>${esc(r[1])}</code></td><td data-l="Right"><code>${esc(r[2])}</code></td></tr>`).join('');
+
+/* ---------- routing ---------- */
+const views=['playground','methods','lab','quiz','cheatsheet'];
+function route(){const v=views.includes(location.hash.slice(1))?location.hash.slice(1):'playground';
+  document.querySelectorAll('section[data-view]').forEach(s=>s.classList.toggle('on',s.dataset.view===v));
+  document.querySelectorAll('#nav a').forEach(a=>a.classList.toggle('on',a.dataset.v===v));window.scrollTo(0,0)}
+window.addEventListener('hashchange',route);
+
+renderChips();renderArgs();run();renderMethods();renderQuiz();route();
+}
+</script>
+</body>
+</html>
